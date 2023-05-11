@@ -14,7 +14,7 @@ import (
 type FotoProduct interface {
 	Create(fotoproduct model.FotoProduct) (model.FotoProduct, error)
 	GetByID(fotoproductid uint) (model.FotoProduct, error)
-	GetByProductID(productid uint) (model.FotoProduct, error)
+	GetByProductID(productid uint) ([]model.FotoProduct, error)
 
 	Update(fotoproduct model.FotoProduct) (model.FotoProduct, error)
 	Delete(fotoproductid uint) error
@@ -53,14 +53,14 @@ func (r *repofotoproduct) GetByID(id uint) (model.FotoProduct, error) {
 	return fotoproduct, nil
 }
 
-func (r *repofotoproduct) GetByProductID(productid uint) (model.FotoProduct, error) {
-	var fotoproduct model.FotoProduct
-	result := r.DB.Where(&model.FotoProduct{ProductID: productid}).First(&fotoproduct)
+func (r *repofotoproduct) GetByProductID(productid uint) ([]model.FotoProduct, error) {
+	var fotoproducts []model.FotoProduct
+	result := r.DB.Where(&model.FotoProduct{ProductID: productid}).Find(&fotoproducts)
 	if result.Error != nil {
-		return model.FotoProduct{}, result.Error
+		return []model.FotoProduct{}, result.Error
 	}
 
-	return fotoproduct, nil
+	return fotoproducts, nil
 }
 
 func (r *repofotoproduct) Update(fotoproduct model.FotoProduct) (model.FotoProduct, error) {

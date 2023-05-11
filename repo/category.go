@@ -2,7 +2,6 @@ package repo
 
 import (
 	"errors"
-	"log"
 	"shop/model"
 
 	"gorm.io/gorm"
@@ -46,6 +45,9 @@ func (r *repocategory) Get(id uint) (model.Category, error) {
 	if result.Error != nil {
 		return model.Category{}, result.Error
 	}
+	if result.RowsAffected == 0 {
+		return model.Category{}, errRecordNotFound
+	}
 
 	return category, nil
 }
@@ -57,8 +59,9 @@ func (r *repocategory) GetAll() ([]model.Category, error) {
 	if result.Error != nil {
 		return []model.Category{}, result.Error
 	}
-
-	log.Println(categories)
+	if result.RowsAffected == 0 {
+		return []model.Category{}, errRecordNotFound
+	}
 
 	return categories, nil
 }
@@ -71,12 +74,18 @@ func (r *repocategory) Update(category model.Category) (model.Category, error) {
 	if result.Error != nil {
 		return model.Category{}, result.Error
 	}
+	if result.RowsAffected == 0 {
+		return model.Category{}, errRecordNotFound
+	}
 
 	category.CreatedAt = olddata.CreatedAt
 
 	result = r.DB.Save(&category)
 	if result.Error != nil {
 		return model.Category{}, result.Error
+	}
+	if result.RowsAffected == 0 {
+		return model.Category{}, errRecordNotFound
 	}
 
 	return category, nil
@@ -87,6 +96,9 @@ func (r *repocategory) Delete(id uint) error {
 	result := r.DB.Delete(&model.Category{}, id)
 	if result.Error != nil {
 		return result.Error
+	}
+	if result.RowsAffected == 0 {
+		return errRecordNotFound
 	}
 
 	return nil

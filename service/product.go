@@ -6,18 +6,19 @@ import (
 )
 
 type Product interface {
-	Create(product model.ProductComplete) (model.ProductComplete, error)
+	Create(product model.Product) (model.Product, error)
 	Get(productcompleteid uint) (model.ProductComplete, error)
-	GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.ProductComplete, error)
+	GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.Product, error)
 	Update(productcomplete model.ProductComplete) (model.ProductComplete, error)
 	Delete(productcompleteid uint) error
 }
 
-func NewServiceProduct(repoProduct repo.Product, repoLogProduct repo.LogProduct, repoFotoProduct repo.FotoProduct) Product {
+func NewServiceProduct(repoProduct repo.Product, repoLogProduct repo.LogProduct, repoFotoProduct repo.FotoProduct, repoCategory repo.Category) Product {
 	return &serviceProduct{
 		repoProduct:     repoProduct,
 		repoLogProduct:  repoLogProduct,
 		repoFotoProduct: repoFotoProduct,
+		repoCategory:    repoCategory,
 	}
 }
 
@@ -25,26 +26,23 @@ type serviceProduct struct {
 	repoProduct     repo.Product
 	repoLogProduct  repo.LogProduct
 	repoFotoProduct repo.FotoProduct
+	repoCategory    repo.Category
 }
 
-func (s *serviceProduct) Create(product model.ProductComplete) (model.ProductComplete, error) {
+func (s *serviceProduct) Create(product model.Product) (model.Product, error) {
 
-	newProduct, err := s.repoProduct.Create(product.Product)
+	category, err := s.repoCategory.Get(product.CategoryID)
 	if err != nil {
-		return model.ProductComplete{}, err
+		return model.Product{}, err
+	}
+	product.Category = category
+
+	resultProduct, err := s.repoProduct.Create(product)
+	if err != nil {
+		return model.Product{}, err
 	}
 
-	newLogoProduct, err := s.repoLogProduct.Create(product.LogProduct)
-	if err != nil {
-		return model.ProductComplete{}, err
-	}
-
-	newFotoProduct, err := s.repoFotoProduct.Create(product.FotoProduct)
-	if err != nil {
-		return model.ProductComplete{}, err
-	}
-
-	return model.ProductComplete{Product: newProduct, LogProduct: newLogoProduct, FotoProduct: newFotoProduct}, nil
+	return resultProduct, nil
 }
 
 func (s *serviceProduct) Get(productid uint) (model.ProductComplete, error) {
@@ -54,32 +52,42 @@ func (s *serviceProduct) Get(productid uint) (model.ProductComplete, error) {
 	}
 
 	logProduct, fotoProduct, err := s.getProductDetail(productid)
+	if err != nil {
+		return model.ProductComplete{}, err
+	}
 
 	return model.ProductComplete{
-		Product:     product,
-		LogProduct:  logProduct,
-		FotoProduct: fotoProduct,
+		Product:      product,
+		LogProduct:   logProduct,
+		FotoProducts: fotoProduct,
 	}, nil
 }
 
-func (s *serviceProduct) GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.ProductComplete, error) {
-	var result []model.ProductComplete
+func (s *serviceProduct) GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.Product, error) {
+	var result []model.Product
 	products, err := s.repoProduct.GetAll(limit, page, categoryid, tokoid)
 	if err != nil {
-		return []model.ProductComplete{}, err
+		return []model.Product{}, err
+	}
+
+	category, err := s.repoCategory.Get(categoryid)
+	if err != nil {
+		return []model.Product{}, err
 	}
 
 	for _, product := range products {
-		logProduct, fotoProduct, err := s.getProductDetail(product.ID)
+		logProduct, fotoProducts, err := s.getProductDetail(product.ID)
 		if err != nil {
-			return []model.ProductComplete{}, err
+			return []model.Product{}, err
 		}
 
-		result = append(result, model.ProductComplete{
-			Product:     product,
-			LogProduct:  logProduct,
-			FotoProduct: fotoProduct,
-		})
+		product.Category = category
+		product.CategoryID = categoryid
+		product.FotoProducts = fotoProducts
+		product.TokoID = tokoid
+		product.LogProduct = logProduct
+
+		result = append(result, product)
 	}
 
 	return result, nil
@@ -104,17 +112,18 @@ func (s *serviceProduct) Delete(productid uint) error {
 	return nil
 }
 
-func (s *serviceProduct) getProductDetail(productid uint) (model.LogProduct, model.FotoProduct, error) {
-	logProduct, err := s.repoLogProduct.GetByProductID(productid)
+func (s *serviceProduct) getProductDetail(productid uint) (model.LogProduct, []model.FotoProduct, error) {
+
+	// logProduct, err := s.repoLogProduct.GetByProductID(productid)
+	// if err != nil {
+	// 	return model.LogProduct{}, model.FotoProduct{}, err
+	// }
+
+	fotoProducts, err := s.repoFotoProduct.GetByProductID(productid)
 	if err != nil {
-		return model.LogProduct{}, model.FotoProduct{}, err
+		return model.LogProduct{}, []model.FotoProduct{}, err
 	}
 
-	fotoProduct, err := s.repoFotoProduct.GetByProductID(productid)
-	if err != nil {
-		return model.LogProduct{}, model.FotoProduct{}, err
-	}
-
-	return logProduct, fotoProduct, err
+	return model.LogProduct{}, fotoProducts, nil
 
 }

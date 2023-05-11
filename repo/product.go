@@ -51,8 +51,27 @@ func (r *repoproduct) Get(id uint) (model.Product, error) {
 func (r *repoproduct) GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.Product, error) {
 	var products []model.Product
 
-	offset := int(limit) * int(page-1)
-	result := r.DB.Limit(int(limit)).Offset(offset).Where(&model.Product{CategoryID: categoryid, TokoID: tokoid})
+	tx := r.DB
+
+	if limit > 0 {
+		tx = tx.Limit(int(limit))
+	}
+
+	if page > 0 {
+		offset := int(limit) * int(page-1)
+		tx = tx.Offset(offset)
+	}
+
+	if categoryid > 0 {
+		tx = tx.Where(&model.Product{CategoryID: categoryid})
+	}
+
+	if tokoid > 0 {
+		tx = tx.Where(&model.Product{TokoID: tokoid})
+	}
+
+	result := tx.Find(&products)
+
 	if result.Error != nil {
 		return []model.Product{}, result.Error
 	}

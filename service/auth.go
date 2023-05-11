@@ -12,18 +12,16 @@ type Auth interface {
 	Register(user model.User) error
 }
 
-func NewServiceAuth(repoUser repo.User, repoToko repo.Toko, repoProvCity repo.ProvCity) Auth {
+func NewServiceAuth(repoUser repo.User, repoToko repo.Toko, repoTrx repo.Trx, repoAlamat repo.Alamat, repoProvCity repo.ProvCity) Auth {
 	return &serviceAuth{
-		rUser:     repoUser,
-		rToko:     repoToko,
-		rProvCity: repoProvCity,
+		rUser: repoUser,
+		rToko: repoToko,
 	}
 }
 
 type serviceAuth struct {
-	rUser     repo.User
-	rToko     repo.Toko
-	rProvCity repo.ProvCity
+	rUser repo.User
+	rToko repo.Toko
 }
 
 func (s *serviceAuth) Register(user model.User) error {
@@ -55,6 +53,15 @@ func (s *serviceAuth) Login(user model.User) (model.User, error) {
 	if err != nil {
 		return model.User{}, err
 	}
+
+	toko, err := s.rToko.GetByUserID(savedUser.ID)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	savedUser.Toko = toko
+	// savedUser.Trxs = trxs
+	// savedUser.Alamats = alamats
 
 	if !CheckPasswordHash(user.KataSandi, savedUser.KataSandi) {
 		return model.User{}, fiber.ErrUnauthorized

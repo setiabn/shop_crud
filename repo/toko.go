@@ -8,6 +8,7 @@ import (
 
 type Toko interface {
 	Get(tokoid uint) (model.Toko, error)
+	GetByUserID(id uint) (model.Toko, error)
 	GetAll(limit uint, page uint) ([]model.Toko, error)
 	Update(toko model.Toko) (model.Toko, error)
 	Delete(tokoid uint) error
@@ -33,11 +34,23 @@ func (r *repotoko) Get(id uint) (model.Toko, error) {
 	return toko, nil
 }
 
+func (r *repotoko) GetByUserID(id uint) (model.Toko, error) {
+
+	var toko model.Toko
+
+	result := r.DB.Where(&model.Toko{UserID: id}).First(&toko, id)
+	if result.Error != nil {
+		return model.Toko{}, result.Error
+	}
+
+	return toko, nil
+}
+
 func (r *repotoko) GetAll(limit uint, page uint) ([]model.Toko, error) {
 	var tokos []model.Toko
 
 	offset := int(limit) * int(page-1)
-	result := r.DB.Limit(int(limit)).Offset(offset)
+	result := r.DB.Limit(int(limit)).Offset(offset).Find(&tokos)
 	if result.Error != nil {
 		return []model.Toko{}, result.Error
 	}
@@ -55,7 +68,12 @@ func (r *repotoko) Update(toko model.Toko) (model.Toko, error) {
 
 	toko.CreatedAt = olddata.CreatedAt
 
-	result = r.DB.Create(&toko)
+	toko.UserID = olddata.UserID
+	// toko.Products = olddata.Products
+	toko.DetailTrxs = olddata.DetailTrxs
+	toko.LogProducts = olddata.LogProducts
+
+	result = r.DB.Save(&toko)
 	if result.Error != nil {
 		return model.Toko{}, result.Error
 	}

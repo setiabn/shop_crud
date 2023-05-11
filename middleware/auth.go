@@ -49,6 +49,7 @@ func GenerateJwtToken(user model.User) (string, error) {
 	claims := token.Claims.(jwt.MapClaims)
 	claims["username"] = user.Nama
 	claims["user_id"] = user.ID
+	claims["toko_id"] = user.Toko.ID
 	claims["is_admin"] = user.IsAdmin
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 	tokenString, err := token.SignedString([]byte(config.Get("SECRET")))
@@ -63,6 +64,7 @@ type TokenData struct {
 	Username string    `json:"username"`
 	UserId   uint      `json:"user_id"`
 	IsAdmin  bool      `json:"is_admin"`
+	TokoID   uint      `json:"toko_id"`
 	Expired  time.Time `json:"exp"`
 }
 
@@ -80,12 +82,15 @@ func ParseToken(tokenString string) (TokenData, error) {
 	username := claims["username"].(string)
 	userid := uint(claims["user_id"].(float64))
 	isAdmin := bool(claims["is_admin"].(bool))
+	tokoId := uint(claims["toko_id"].(float64))
+
 	exp := time.Unix(int64(claims["exp"].(float64)), 0)
 
 	return TokenData{
 		Username: username,
 		UserId:   userid,
 		IsAdmin:  isAdmin,
+		TokoID:   tokoId,
 		Expired:  exp,
 	}, nil
 }

@@ -83,5 +83,9 @@ func (r *repoalamat) Delete(alamat model.Alamat) error {
 		return result.Error
 	}
 
+	if result.RowsAffected == 0 {
+		return errRecordNotFound
+	}
+
 	return nil
 }

@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type LogProduct struct {
-	gorm.Model
+	BasicModel
 
 	NamaProduct   string `gorm:"column:nama_product;type:varchar(255)" json:"nama_product" validate:"required"`
 	Slug          string `gorm:"column:slug;type:varchar(255)" json:"slug" validate:"required"`
@@ -12,7 +10,6 @@ type LogProduct struct {
 	Deskripsi     string `gorm:"column:deskripsi;type:text" json:"deskripsi" validate:"required"`
 
 	ProductID uint
-	Product   Product
 
 	TokoID      uint
 	DetailTrxID uint

@@ -18,10 +18,10 @@ var (
 
 func respSuccess(method string, data interface{}) fiber.Map {
 	return fiber.Map{
-		"data":    data,
-		"errors":  nil,
-		"message": "Succeed to " + method + " data",
 		"status":  true,
+		"message": "Succeed to " + method + " data",
+		"errors":  nil,
+		"data":    data,
 	}
 }
 
@@ -32,10 +32,10 @@ func respError(method string, errs ...error) fiber.Map {
 		errStrings = append(errStrings, e.Error())
 	}
 	return fiber.Map{
-		"data":    nil,
-		"errors":  errStrings,
-		"message": "Failed to " + method + " data",
 		"status":  false,
+		"message": "Failed to " + method + " data",
+		"errors":  errStrings,
+		"data":    nil,
 	}
 }
 
@@ -61,4 +61,17 @@ func parseDate(t string) (time.Time, error) {
 	}
 
 	return parsedDate, nil
+}
+
+func parseToUint(numbers ...string) ([]uint, error) {
+
+	var result []uint
+	for _, v := range numbers {
+		num, err := strconv.ParseUint(v, 10, 32)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, uint(num))
+	}
+	return result, nil
 }

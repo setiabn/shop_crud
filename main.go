@@ -46,12 +46,12 @@ func main() {
 	repoUser := repo.NewUserRepo(db)
 	repoProvCity := repo.NewProvCityRepo()
 
-	servAuth := service.NewServiceAuth(repoUser, repoToko, repoProvCity)
+	servAuth := service.NewServiceAuth(repoUser, repoToko, repoTrx, repoAlamat, repoProvCity)
 	servCategory := service.NewServiceCategory(repoCategory)
-	servProduct := service.NewServiceProduct(repoProduct, repoLogProduct, repoFotoProduct)
+	servProduct := service.NewServiceProduct(repoProduct, repoLogProduct, repoFotoProduct, repoCategory)
 	servToko := service.NewServiceToko(repoToko)
 	servTrx := service.NewServiceTrx(repoTrx, repoDetailTrx)
-	servUser := service.NewServiceUser(repoUser)
+	servUser := service.NewServiceUser(repoUser, repoToko, repoTrx, repoAlamat, repoProvCity)
 	servAlamat := service.NewServiceAlamat(repoAlamat)
 	servProvCity := service.NewServiceProvCity(repoProvCity)
 
@@ -78,6 +78,8 @@ func main() {
 	router.InitToko(v1, servToko)
 	router.InitTrx(v1, servTrx)
 	router.InitUser(v1, servUser, servAlamat)
+
+	v1.Static("/public", "/public")
 
 	app.Listen(config.Get("HOST"))
 }

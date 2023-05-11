@@ -36,11 +36,16 @@ func (r *repouser) Create(user model.User) (model.User, error) {
 		return model.User{}, errors.New("not created")
 	}
 
+	if result.Error != nil {
+		return model.User{}, result.Error
+	}
+
 	return user, nil
 }
 
 func (r *repouser) Get(id uint) (model.User, error) {
 	var user model.User
+
 	result := r.DB.First(&user, id)
 	if result.Error != nil {
 		return model.User{}, result.Error
@@ -70,8 +75,11 @@ func (r *repouser) Update(user model.User) (model.User, error) {
 	}
 
 	user.CreatedAt = olddata.CreatedAt
+	user.IsAdmin = olddata.IsAdmin
+	user.JenisKelamin = olddata.JenisKelamin
+	user.Tentang = olddata.Tentang
 
-	result = r.DB.Create(&user)
+	result = r.DB.Save(&user)
 	if result.Error != nil {
 		return model.User{}, result.Error
 	}

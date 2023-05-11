@@ -8,7 +8,7 @@ import (
 type Toko interface {
 	GetByID(tokoid uint) (model.Toko, error)
 	GetAll(limit uint, page uint) ([]model.Toko, error)
-
+	GetByUserID(userid uint) (model.Toko, error)
 	Update(toko model.Toko) (model.Toko, error)
 	Delete(tokoid uint) error
 }
@@ -37,6 +37,14 @@ func (s *serviceToko) GetAll(limit uint, page uint) ([]model.Toko, error) {
 		return []model.Toko{}, err
 	}
 	return tokos, nil
+}
+
+func (s *serviceToko) GetByUserID(userid uint) (model.Toko, error) {
+	toko, err := s.repo.GetByUserID(userid)
+	if err != nil {
+		return model.Toko{}, err
+	}
+	return toko, nil
 }
 
 func (s *serviceToko) Update(toko model.Toko) (model.Toko, error) {
