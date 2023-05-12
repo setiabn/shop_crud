@@ -2,13 +2,18 @@ package handler
 
 import (
 	"errors"
+	"shop/middleware"
 	"strconv"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 )
 
-// func getToken(c *fiber.Ctx) string {}
+func getToken(c *fiber.Ctx) (middleware.TokenData, error) {
+	tokenStr := c.Get("Token")
+	return middleware.ParseToken(tokenStr)
+}
+
 // func parseIdPathParams(c *fiber.Ctx) string {}
 
 var (
@@ -74,4 +79,17 @@ func parseToUint(numbers ...string) ([]uint, error) {
 		result = append(result, uint(num))
 	}
 	return result, nil
+}
+
+func isOwner(c *fiber.Ctx, userid uint) error {
+	token, err := getToken(c)
+	if err != nil {
+		return err
+	}
+
+	if token.UserId != userid {
+		return fiber.ErrUnauthorized
+	}
+
+	return nil
 }

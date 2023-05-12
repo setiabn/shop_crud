@@ -4,6 +4,7 @@ import (
 	"errors"
 	"shop/model"
 
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -54,6 +55,13 @@ func (r *repoalamat) GetByUserID(userid uint) ([]model.Alamat, error) {
 	if result.Error != nil {
 		return []model.Alamat{}, result.Error
 	}
+
+	// Protect from other user
+	for _, alamat := range alamats {
+		if alamat.UserID != userid {
+			return []model.Alamat{}, fiber.ErrUnauthorized
+		}
+	}
 	return alamats, nil
 }
 
@@ -64,6 +72,10 @@ func (r *repoalamat) Update(alamat model.Alamat) (model.Alamat, error) {
 	result := r.DB.First(&olddata, alamat.ID)
 	if result.Error != nil {
 		return model.Alamat{}, result.Error
+	}
+
+	if olddata.UserID != alamat.UserID {
+		return model.Alamat{}, fiber.ErrUnauthorized
 	}
 
 	alamat.CreatedAt = olddata.CreatedAt
@@ -77,6 +89,14 @@ func (r *repoalamat) Update(alamat model.Alamat) (model.Alamat, error) {
 }
 
 func (r *repoalamat) Delete(alamat model.Alamat) error {
+
+	var olddata model.Alamat
+	if err := r.DB.First(&olddata).Error; err != nil {
+		return err
+	}
+	if olddata.UserID != alamat.UserID {
+		return fiber.ErrUnauthorized
+	}
 
 	result := r.DB.Where(&model.Alamat{UserID: alamat.UserID}).Delete(&model.Alamat{}, alamat.ID)
 	if result.Error != nil {

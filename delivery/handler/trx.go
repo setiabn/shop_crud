@@ -51,14 +51,35 @@ func GetTrxByID(service service.Trx) fiber.Handler {
 func CreateTrx(service service.Trx) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
-		// token := middleware.GetToken(c)
+		token, err := getToken(c)
+		if err != nil {
+			c.Status(fiber.ErrBadRequest.Code)
+			return c.JSON(respError(c.Method(), err))
+		}
 
-		bodyData := struct {
-			MethodBayar string
-			AlamatKirim uint
-			DetailTrx   []model.DetailTrx
+		payload := struct {
+			MethodBayar string `json:"method_bayar"`
+			AlamatKirim uint   `json:"alamat_kirim"`
+			DetailTrx   []struct {
+				ProductId uint `json:"product_id"`
+				Kuantitas uint `json:"kuantitas"`
+			} `json:"detail_trx"`
 		}{}
-		c.BodyParser(&bodyData)
+		err = c.BodyParser(&payload)
+		if err != nil {
+			c.Status(fiber.StatusBadRequest)
+			return c.JSON(respError(c.Method(), err))
+		}
+
+		// TODO belum
+
+		newTrx := model.Trx{
+			MethodBayar: payload.MethodBayar,
+			UserID:      token.UserId,
+			AlamatID:    payload.AlamatKirim,
+		}
+
+		newTrx.DetailTrx = model.DetailTrx{}
 
 		// TODO belum ...
 		// newTrx := model.Trx{

@@ -6,16 +6,20 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	jwtware "github.com/gofiber/jwt/v2"
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// LoginOnly protect routes
-func LoginOnly() fiber.Handler {
-	return jwtware.New(jwtware.Config{
-		SigningKey:   []byte(config.Get("SECRET")),
-		ErrorHandler: JwtError,
-	})
+// UserOnly protect routes
+func UserOnly() fiber.Handler {
+	return func(c *fiber.Ctx) error {
+		tokenStr := c.Get("Token")
+		_, err := ParseToken(tokenStr)
+		if err != nil {
+			return JwtError(c, err)
+		}
+
+		return c.Next()
+	}
 }
 
 func AdminOnly() fiber.Handler {

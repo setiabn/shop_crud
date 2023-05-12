@@ -11,16 +11,21 @@ import (
 func GetMyAlamat(service service.Alamat) fiber.Handler {
 	return func(c *fiber.Ctx) error {
 
-		tokenStr := c.Get("Token")
-		token, err := middleware.ParseToken(tokenStr)
+		token, err := getToken(c)
 		if err != nil {
 			return middleware.JwtError(c, err)
 		}
 
+		// userid dari jwt, sehingga aman dari user lain
 		alamats, err := service.GetByUserID(token.UserId)
 		if err != nil {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(respError(c.Method(), err))
+		}
+		// Proteksi dari user lain
+		if err := isOwner(c, alamats[0].UserID); err != nil {
+			c.Status(fiber.StatusUnauthorized)
+			return c.JSON(respError(c.Method(), fiber.ErrUnauthorized))
 		}
 
 		return c.JSON(respSuccess(c.Method(), alamats))
@@ -43,6 +48,12 @@ func GetAlamatByID(service service.Alamat) fiber.Handler {
 			return c.JSON(respError(c.Method(), err))
 		}
 
+		// Proteksi dari user lain
+		if err := isOwner(c, alamat.UserID); err != nil {
+			c.Status(fiber.StatusUnauthorized)
+			return c.JSON(respError(c.Method(), fiber.ErrUnauthorized))
+		}
+
 		return c.JSON(respSuccess(c.Method(), alamat))
 	}
 }
@@ -57,9 +68,7 @@ func CreateAlamat(service service.Alamat) fiber.Handler {
 			return c.JSON(respError(c.Method(), err))
 		}
 
-		tokenStr := c.Get("Token")
-
-		token, err := middleware.ParseToken(tokenStr)
+		token, err := getToken(c)
 		if err != nil {
 			return middleware.JwtError(c, err)
 		}
@@ -93,8 +102,7 @@ func UpdateAlamatByID(service service.Alamat) fiber.Handler {
 			return c.JSON(respError(c.Method(), err))
 		}
 
-		tokenStr := c.Get("Token")
-		token, err := middleware.ParseToken(tokenStr)
+		token, err := getToken(c)
 		if err != nil {
 			return middleware.JwtError(c, err)
 		}
@@ -124,8 +132,7 @@ func DeleteAlamatByID(service service.Alamat) fiber.Handler {
 
 		var deletedAlamat model.Alamat
 
-		tokenStr := c.Get("Token")
-		token, err := middleware.ParseToken(tokenStr)
+		token, err := getToken(c)
 		if err != nil {
 			return middleware.JwtError(c, err)
 		}

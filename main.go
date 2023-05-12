@@ -1,6 +1,7 @@
 package main
 
 import (
+	"os"
 	"shop/config"
 	"shop/config/database"
 	"shop/delivery/router"
@@ -29,6 +30,10 @@ func mockUser() model.User {
 }
 
 func main() {
+
+	os.MkdirAll("public/assets/produk/", os.ModePerm)
+	os.Mkdir("public/assets/toko/", os.ModePerm)
+
 	db := database.ConnectDB()
 
 	app := fiber.New()

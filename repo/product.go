@@ -4,6 +4,7 @@ import (
 	"errors"
 	"shop/model"
 
+	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
 )
 
@@ -88,8 +89,11 @@ func (r *repoproduct) Update(product model.Product) (model.Product, error) {
 	}
 
 	product.CreatedAt = olddata.CreatedAt
+	if olddata.TokoID != product.TokoID || olddata.Toko.UserID != product.Toko.UserID {
+		return model.Product{}, fiber.ErrUnauthorized
+	}
 
-	result = r.DB.Create(&product)
+	result = r.DB.Save(&product)
 	if result.Error != nil {
 		return model.Product{}, result.Error
 	}
@@ -98,6 +102,11 @@ func (r *repoproduct) Update(product model.Product) (model.Product, error) {
 }
 
 func (r *repoproduct) Delete(id uint) error {
+
+	var oldproduct model.Product
+	if err := r.DB.First(&oldproduct, id).Error; err != nil {
+		return err
+	}
 
 	result := r.DB.Delete(&model.Product{}, id)
 	if result.Error != nil {

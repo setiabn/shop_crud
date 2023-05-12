@@ -2,6 +2,7 @@ package router
 
 import (
 	"shop/delivery/handler"
+	"shop/middleware"
 	"shop/service"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,7 +10,7 @@ import (
 
 func InitTrx(router fiber.Router, serv service.Trx) {
 
-	trx := router.Group("/trx")
+	trx := router.Group("/trx", middleware.UserOnly())
 
 	trx.Get("/", handler.GetAllMyTrx(serv))
 	trx.Get("/:id", handler.GetTrxByID(serv))

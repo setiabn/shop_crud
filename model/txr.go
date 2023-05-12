@@ -15,4 +15,6 @@ type Trx struct {
 
 	AlamatID uint
 	Alamat   Alamat
+
+	DetailTrx DetailTrx
 }

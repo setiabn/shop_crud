@@ -12,6 +12,7 @@ import (
 func GetMyProfile(service service.User) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
+		// userid dari jwt, sehingga aman dari user lain
 
 		tokenStr := c.Get("Token")
 		token, err := middleware.ParseToken(tokenStr)
@@ -43,6 +44,7 @@ type reqUpdateProfile struct {
 func UpdateProfile(service service.User) fiber.Handler {
 
 	return func(c *fiber.Ctx) error {
+		// userid dari jwt, sehingga aman dari user lain
 
 		tokenStr := c.Get("Token")
 		token, err := middleware.ParseToken(tokenStr)

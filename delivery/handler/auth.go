@@ -1,14 +1,11 @@
 package handler
 
 import (
-	"fmt"
-	"shop/config"
 	"shop/middleware"
 	"shop/model"
 	"shop/service"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/golang-jwt/jwt/v4"
 )
 
 type registerReqData struct {
@@ -108,18 +105,6 @@ func Login(servAuth service.Auth, servProvCity service.ProvCity) fiber.Handler {
 			c.Status(fiber.StatusInternalServerError)
 			return c.JSON(respError(c.Method(), err))
 		}
-
-		// TODO hapus kode uji------------------------------------------------------------------------------------
-		secret := config.Get("SECRET")
-		claims := jwt.MapClaims{}
-		jwt.ParseWithClaims(tokenString, &claims, func(token *jwt.Token) (interface{}, error) {
-			return []byte(secret), nil
-		})
-		println("secret", secret)
-		for key, val := range claims {
-			fmt.Printf("Key: %v, value: %v\n", key, val)
-		}
-		// -------------------------------------------------------------------
 
 		// Melengkapi informasi mengenai provinsi & kota ----------------------------------
 		province, err := servProvCity.GetDetaiProvince(user.IDProvinsi)

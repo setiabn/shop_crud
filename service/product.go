@@ -9,7 +9,7 @@ type Product interface {
 	Create(product model.Product) (model.Product, error)
 	Get(productcompleteid uint) (model.ProductComplete, error)
 	GetAll(limit uint, page uint, categoryid uint, tokoid uint) ([]model.Product, error)
-	Update(productcomplete model.ProductComplete) (model.ProductComplete, error)
+	Update(product model.Product) (model.Product, error)
 	Delete(productcompleteid uint) error
 }
 
@@ -93,15 +93,13 @@ func (s *serviceProduct) GetAll(limit uint, page uint, categoryid uint, tokoid u
 	return result, nil
 }
 
-func (s *serviceProduct) Update(product model.ProductComplete) (model.ProductComplete, error) {
-	newProduct, err := s.repoProduct.Update(product.Product)
+func (s *serviceProduct) Update(product model.Product) (model.Product, error) {
+	newProduct, err := s.repoProduct.Update(product)
 	if err != nil {
-		return model.ProductComplete{}, err
+		return model.Product{}, err
 	}
 
-	return model.ProductComplete{
-		Product: newProduct,
-	}, nil
+	return newProduct, nil
 }
 
 func (s *serviceProduct) Delete(productid uint) error {

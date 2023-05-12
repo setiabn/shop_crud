@@ -13,8 +13,8 @@ func RunMigration(db *gorm.DB) {
 		&model.Trx{},
 		&model.Alamat{},
 		&model.DetailTrx{},
-		&model.LogProduct{},
 		&model.Product{},
+		&model.LogProduct{},
 
 		&model.Category{},
 		&model.FotoProduct{},
